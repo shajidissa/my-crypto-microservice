@@ -1,0 +1,34 @@
+#swagger.oauth.url: http://localhost:8080/auth/oauth/token
+
+logging.level.org.springframework.web: DEBUG
+logging.level.org.springframework.security: DEBUG
+
+spring:
+  application:
+    name: my-crypto-microservice
+#  profiles:
+#    active:
+#      default
+#  cloud:
+#    config:
+#      uri: http://51.141.9.85:8888
+#      enabled: true
+
+server:
+    port: 8094
+    #contextPath: /my-patient-microservice
+          
+eureka:
+  instance:
+    #hostname: 34.248.31.107
+    #preferIpAddress: false
+    preferIpAddress: true
+  client:
+    registerWithEureka: true
+    fetchRegistry: true
+    serviceUrl:
+      defaultZone: http://51.141.9.85:8761/eureka
+      #defaultZone: http://localhost:8761/eureka
+    instance:
+      appname: my-crypto-microservice 
+      
