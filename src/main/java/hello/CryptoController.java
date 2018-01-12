@@ -8,10 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -52,6 +54,24 @@ public class CryptoController  {
 
 		//return ResponseEntity.created().build();
 		return ResponseEntity.status(HttpStatus.CREATED).build();
+	}
+	
+	@GetMapping(path="/all")
+	public @ResponseBody Iterable<Crypto> getAllPatients() {
+		// This returns a JSON or XML with the users
+		return cryptoRepository.findAll();
+	}
+	
+	@GetMapping(path="/get")
+	public @ResponseBody Crypto getCryptoByID(@RequestParam int id) {
+		// This returns a JSON or XML with the users
+		return cryptoRepository.findCryptoById(id);
+	}
+	
+	@DeleteMapping(path = "/delete")
+	 public ResponseEntity <String> delete(int id) {
+		cryptoRepository.delete(getCryptoByID(id));
+		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 
 }
