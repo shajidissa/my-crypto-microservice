@@ -1,5 +1,6 @@
 package hello;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,7 +17,11 @@ public class Crypto {
     @GeneratedValue(strategy=GenerationType.AUTO)
     
     private Integer id;
+    
+    @Column(unique = true)
     private String coinname;
+    
+    @Column(unique = true)
     private String coincode;
     
     
