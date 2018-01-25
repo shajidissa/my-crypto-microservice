@@ -28,6 +28,8 @@ import com.binance.api.client.domain.market.OrderBook;
 import com.binance.api.client.domain.market.OrderBookEntry;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.binance.api.client.domain.market.TickerStatistics;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixProperty;
 
 
 @Controller    
@@ -37,6 +39,8 @@ public class CryptoController  {
 	@Autowired
 	private CryptoRepository cryptoRepository;
 
+	@Autowired
+	private CryptoPairPriceRepository cryptoPairPriceRepository;
 	
 	@GetMapping(path="/list") // Map ONLY GET Requests
 	public @ResponseBody String listCrypto () {
@@ -93,14 +97,52 @@ public class CryptoController  {
 	
 	@DeleteMapping(path = "/delete")
 	 public ResponseEntity <String> delete(int id) {
+		
+		//cryptoPairPriceRepository.delete(cryptoPairPriceRepository.findCryptoPairPriceByPairedcoinid(id));
+		cryptoPairPriceRepository.deleteById(id);
 		cryptoRepository.delete(getCryptoByID(id));
 		return ResponseEntity.status(HttpStatus.OK).build();
 	}
 	
+	
+	
+	private @ResponseBody Iterable<MyFavoriteCrypto> buildFallbackFav(){
+		List<Crypto> myfav = (List<Crypto>) cryptoRepository.findAll();		
+		List<MyFavoriteCrypto> myfavWithPrices = new ArrayList<MyFavoriteCrypto>();
+		
+		for(Crypto c: myfav)
+		{
+			MyFavoriteCrypto afav = new MyFavoriteCrypto();
+			afav.setId(c.getId());
+			afav.setCoincode(c.getCoincode());
+			afav.setCoinname(c.getCoinname());
+			myfavWithPrices.add(afav);
+			
+		}
+		
+		System.out.println("Fallback");
+		return myfavWithPrices;
+		
+    }
+	
+	@HystrixCommand(fallbackMethod = "buildFallbackFav",
+            threadPoolKey = "myThreadPool",
+            threadPoolProperties =
+                    {@HystrixProperty(name = "coreSize",value="50"),
+                     @HystrixProperty(name="maxQueueSize", value="10")},
+            commandProperties={         
+            		 @HystrixProperty(name="execution.isolation.thread.timeoutInMilliseconds", value="1000000"),
+            		 @HystrixProperty(name="circuitBreaker.requestVolumeThreshold", value="10"),
+                     @HystrixProperty(name="circuitBreaker.errorThresholdPercentage", value="75"),
+                     @HystrixProperty(name="circuitBreaker.sleepWindowInMilliseconds", value="7000"),
+                     @HystrixProperty(name="metrics.rollingStats.timeInMilliseconds", value="15000"),
+                     @HystrixProperty(name="metrics.rollingStats.numBuckets", value="5")}
+    )
 	@GetMapping(path="/myfav")
 	public @ResponseBody Iterable<MyFavoriteCrypto> getMyFavouriteCryptos() {
 		// This returns a JSON or XML with the users
 		
+
 		List<Crypto> myfav = (List<Crypto>) cryptoRepository.findAll();
 		
 		List<MyFavoriteCrypto> myfavWithPrices = new ArrayList<MyFavoriteCrypto>();
@@ -112,7 +154,14 @@ public class CryptoController  {
 			afav.setCoincode(c.getCoincode());
 			afav.setCoinname(c.getCoinname());
 			
-			BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance(/*"API-KEY", "SECRET"*/);
+			CryptoPairPrice cpp1 = cryptoPairPriceRepository.findCryptoPairPriceByPairedcoin(c.getCoincode()+"ETH");
+			CryptoPairPrice cpp2 = cryptoPairPriceRepository.findCryptoPairPriceByPairedcoin(c.getCoincode()+"BTC");
+			
+			afav.setETH(cpp1.getPairedprice());
+			afav.setBTC(cpp2.getPairedprice());
+			
+			/*
+			BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance();
 			BinanceApiRestClient client = factory.newRestClient();
 			
 			client.ping();
@@ -132,6 +181,7 @@ public class CryptoController  {
 				
 			}
 			catch (Exception e) {}
+			*/
 			
 			myfavWithPrices.add(afav);
 			

@@ -20,4 +20,7 @@ http://localhost:8092/demo/all
 
 http://localhost:8094/swagger-ui.html
 
+http://localhost:8094/hystrix/monitor?stream=http%3A%2F%2Flocalhost%3A8094%2Fhystrix.stream%20
+http://localhost:8094/crypto/myfav
+
 http://localhost:8080/crypto/list

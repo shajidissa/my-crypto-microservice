@@ -13,4 +13,3 @@ spring:
     config:
       uri: http://51.141.9.85:8888
       enabled: true
-
